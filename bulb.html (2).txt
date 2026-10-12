@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="zh‑CN">
+<head>
+    <meta charset="UTF-8">
+    <title>8个小灯泡</title>
+    <style>
+        .lamp{
+            width:40px;
+            height:40px;
+            border-radius:50%;
+            background:#888;
+            display:inline-block;
+            margin:8px;
+        }
+        .on{
+            background:#ffdd00;
+            box-shadow: 0 0 12px yellow;
+        }
+    </style>
+</head>
+<body>
+    <h3>输入0‑255的数字，点亮小灯泡(8位二进制)</h3>
+    <input type="number" id="numIn" min="0" max="255">
+    <button onclick="light()">提交</button>
+    <div id="box">
+        <span class="lamp"></span>
+        <span class="lamp"></span>
+        <span class="lamp"></span>
+        <span class="lamp"></span>
+        <span class="lamp"></span>
+        <span class="lamp"></span>
+        <span class="lamp"></span>
+        <span class="lamp"></span>
+    </div>
+
+    <script>
+        function light(){
+            let val = Number(document.getElementById("numIn").value);
+            let lamps = document.querySelectorAll(".lamp");
+            // 先全部熄灭
+            for(let i=0;i<8;i++){
+                lamps[i].classList.remove("on");
+            }
+            // 按二进制位点亮
+            for(let i=0;i<8;i++){
+                if(val & (1 << i)){
+                    lamps[i].classList.add("on");
+                }
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>段码屏 PLC 控制面板</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background: #2c3e50; color: white; margin: 0; }
+        .container { text-align: center; background: #34495e; padding: 40px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
+        h2 { margin-bottom: 30px; color: #ecf0f1; }
+        
+        /* 段码屏样式 */
+        .display { 
+            width: 120px; height: 200px; 
+            background: #111; border: 4px solid #555; border-radius: 10px; 
+            margin: 0 auto 30px; position: relative; 
+        }
+        .seg { position: absolute; background: #333; transition: background 0.1s, box-shadow 0.1s; }
+        .seg.on { background: #ff3b30; box-shadow: 0 0 10px #ff3b30; } /* 红色发光效果 */
+        
+        /* 8个段的物理位置布局 */
+        .seg-a { top: 10px; left: 25px; width: 70px; height: 10px; border-radius: 5px; }
+        .seg-b { top: 25px; right: 10px; width: 10px; height: 70px; border-radius: 5px; }
+        .seg-c { bottom: 25px; right: 10px; width: 10px; height: 70px; border-radius: 5px; }
+        .seg-d { bottom: 10px; left: 25px; width: 70px; height: 10px; border-radius: 5px; }
+        .seg-e { bottom: 25px; left: 10px; width: 10px; height: 70px; border-radius: 5px; }
+        .seg-f { top: 25px; left: 10px; width: 10px; height: 70px; border-radius: 5px; }
+        .seg-g { top: 95px; left: 25px; width: 70px; height: 10px; border-radius: 5px; }
+        .seg-dp { bottom: 15px; right: 15px; width: 12px; height: 12px; border-radius: 50%; }
+
+        /* 输入控制区 */
+        .controls { display: flex; gap: 10px; justify-content: center; align-items: center; }
+        input { padding: 10px; font-size: 18px; width: 60px; text-align: center; border-radius: 5px; border: none; outline: none; }
+        button { padding: 10px 20px; font-size: 16px; background: #3498db; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background: #2980b9; }
+        .status { margin-top: 15px; font-size: 14px; color: #bdc3c7; font-family: monospace; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>段码屏 PLC 控制</h2>
+    
+    <!-- 8段显示器 -->
+    <div class="display">
+        <div class="seg seg-a" id="seg-a"></div>
+        <div class="seg seg-b" id="seg-b"></div>
+        <div class="seg seg-c" id="seg-c"></div>
+        <div class="seg seg-d" id="seg-d"></div>
+        <div class="seg seg-e" id="seg-e"></div>
+        <div class="seg seg-f" id="seg-f"></div>
+        <div class="seg seg-g" id="seg-g"></div>
+        <div class="seg seg-dp" id="seg-dp"></div>
+    </div>
+
+    <!-- 控制面板 -->
+    <div class="controls">
+        <input type="number" id="numInput" min="0" max="9" placeholder="0-9">
+        <button onclick="updateDisplay()">刷新显示</button>
+    </div>
+    <div class="status" id="statusText">等待输入数字 (0~9)...</div>
+</div>
+
+<script>
+    // 核心：0-9 的段码表 (对应 a,b,c,d,e,f,g,dp)
+    // 1 表示亮，0 表示灭
+    const segmentMap = {
+        0: [1,1,1,1,1,1,0,0],
+        1: [0,1,1,0,0,0,0,0],
+        2: [1,1,0,1,1,0,1,0],
+        3: [1,1,1,1,0,0,1,0],
+        4: [0,1,1,0,0,1,1,0],
+        5: [1,0,1,1,0,1,1,0],
+        6: [1,0,1,1,1,1,1,0],
+        7: [1,1,1,0,0,0,0,0],
+        8: [1,1,1,1,1,1,1,0],
+        9: [1,1,1,1,0,1,1,0]
+    };
+
+    const segIds = ['seg-a', 'seg-b', 'seg-c', 'seg-d', 'seg-e', 'seg-f', 'seg-g', 'seg-dp'];
+
+    function updateDisplay() {
+        const input = document.getElementById('numInput').value;
+        const num = parseInt(input);
+        const status = document.getElementById('statusText');
+
+        // 校验输入
+        if (isNaN(num) || num < 0 || num > 9) {
+            status.innerText = "⚠️ 错误：请输入 0~9 之间的整数！";
+            // 清空屏幕
+            segIds.forEach(id => document.getElementById(id).classList.remove('on'));
+            return;
+        }
+
+        // 获取对应段码并点亮
+        const codes = segmentMap[num];
+        codes.forEach((state, index) => {
+            const el = document.getElementById(segIds[index]);
+            if (state === 1) {
+                el.classList.add('on');
+            } else {
+                el.classList.remove('on');
+            }
+        });
+
+        status.innerText = `✅ PLC指令已下发 | 当前数字: ${num} | 段码: 0b${codes.join('')}`;
+    }
+
+    // 支持回车键触发
+    document.getElementById('numInput').addEventListener('keyup', function(e) {
+        if (e.key === 'Enter') updateDisplay();
+    });
+</script>
+
+</body>
+</html>
